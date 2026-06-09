@@ -1,21 +1,31 @@
 /**
  * AML1 (Advanced Markup Language 1) Core Engine
- * Open-Source Hyper-Extended Version
- * Intercepts, parses, and implements advanced native layout systems.
+ * Open-Source Production Version 1.1.0
+ * * This script intercepts the browser loading sequence, tokenizes raw text files,
+ * builds an Abstract Syntax Tree (AST), and paints a modern custom user interface.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
+    // 1. Fetch the raw source code of the document running this script
     fetch(window.location.href)
         .then(response => response.text())
         .then(rawText => {
+            // 2. Parse the code into elements
             const tokens = tokenizeAML(rawText);
             const ast = parseAML(tokens);
+
+            // 3. Clear the default browser view and render the modern AML1 workspace
             renderAML(ast, document.documentElement);
-            initializeInteractiveElements(); // Run native event loops for new tags
         })
-        .catch(err => console.error("AML1 Core Engine Exception:", err));
+        .catch(err => {
+            console.error("AML1 Core Engine Kernel Panic:", err);
+        });
 });
 
+/**
+ * Tokenizer / Lexer
+ * Extracts tags and separate content blocks out of raw document strings.
+ */
 function tokenizeAML(rawText) {
     const tokens = [];
     const regex = /(<\/?[a-zA-Z1-9\-]+(?: [^>]+)?>)|([^<]+)/g;
@@ -23,38 +33,34 @@ function tokenizeAML(rawText) {
 
     while ((match = regex.exec(rawText)) !== null) {
         const [full, tag, text] = match;
+        
         if (tag) {
-            if (tag.toLowerCase().includes('script') && tag.includes('script.js')) continue;
+            // Safely bypass both local and live remote GitHub bootloader tags
+            if (tag.toLowerCase().includes('script') && tag.includes('language.js')) {
+                continue; 
+            }
             
             const isClosing = tag.startsWith('</');
-            // Isolate tag name and extract full raw tag attributes string
-            const tagContent = tag.replace(/[<>\/]/g, '');
-            const name = tagContent.split(' ')[0].toLowerCase();
-            const attrString = tagContent.substring(name.length).trim();
-
+            const name = tag.replace(/[<>\/]/g, '').split(' ')[0].toLowerCase();
+            
             tokens.push({ 
                 type: isClosing ? 'CLOSE_TAG' : 'OPEN_TAG', 
-                name: name,
-                attributes: parseAttributes(attrString)
+                name: name 
             });
         } else if (text && text.trim()) {
-            tokens.push({ type: 'TEXT', value: text.trim() });
+            tokens.push({ 
+                type: 'TEXT', 
+                value: text.trim() 
+            });
         }
     }
     return tokens;
 }
 
-function parseAttributes(attrString) {
-    const attrs = {};
-    if (!attrString) return attrs;
-    const regex = /([a-zA-Z\-]+)=(?:"([^"]*)"|'([^']*)'|([^ ]+))/g;
-    let match;
-    while ((match = regex.exec(attrString)) !== null) {
-        attrs[match[1]] = match[2] || match[3] || match[4];
-    }
-    return attrs;
-}
-
+/**
+ * Parser
+ * Structures the linear array tokens into a nested parent/child tree hierarchy.
+ */
 function parseAML(tokens) {
     let root = { type: 'Root', children: [] };
     let currentParent = root;
@@ -62,8 +68,9 @@ function parseAML(tokens) {
 
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
+
         if (token.type === 'OPEN_TAG') {
-            let node = { type: 'Element', name: token.name, attributes: token.attributes, children: [] };
+            let node = { type: 'Element', name: token.name, children: [] };
             currentParent.children.push(node);
             stack.push(node);
             currentParent = node;
@@ -71,21 +78,32 @@ function parseAML(tokens) {
             stack.pop();
             currentParent = stack[stack.length - 1] || root;
         } else if (token.type === 'TEXT') {
-            currentParent.children.push({ type: 'TextNode', value: token.value });
+            currentParent.children.push({ 
+                type: 'TextNode', 
+                value: token.value 
+            });
         }
     }
     return root;
 }
 
+/**
+ * Modern High-Fidelity Rendering System
+ * Maps AML1 components directly to styled elements with smooth layout geometry.
+ */
 function renderAML(node, targetContainer) {
     if (node.type === 'Root') {
+        // Build the modern premium application wrapper environment
         targetContainer.innerHTML = ''; 
-        targetContainer.style.backgroundColor = '#0b0f19'; 
-        targetContainer.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-        targetContainer.style.color = '#e2e8f0';
-        targetContainer.style.padding = '40px';
+        targetContainer.style.backgroundColor = '#0b0f19'; // Deep Slate Blue background
+        targetContainer.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+        targetContainer.style.color = '#f1f5f9'; // High contrast white text
+        targetContainer.style.padding = '50px 20px';
         targetContainer.style.minHeight = '100vh';
         targetContainer.style.boxSizing = 'border-box';
+        targetContainer.style.display = 'flex';
+        targetContainer.style.flexDirection = 'column';
+        targetContainer.style.alignItems = 'center';
     }
 
     node.children?.forEach(child => {
@@ -95,175 +113,61 @@ function renderAML(node, targetContainer) {
             switch(child.name) {
                 case 'aml-title':
                     element = document.createElement('h1');
-                    element.style.color = '#38bdf8';
-                    element.style.fontSize = '2.4rem';
+                    element.style.color = '#38bdf8'; // Electric blue heading
+                    element.style.fontSize = '2.6rem';
+                    element.style.fontWeight = '800';
+                    element.style.letterSpacing = '-0.04em';
+                    element.style.margin = '0 0 24px 0';
+                    element.style.width = '100%';
+                    element.style.maxWidth = '640px';
+                    element.style.textAlign = 'center';
                     element.style.borderBottom = '2px solid #1e293b';
-                    element.style.paddingBottom = '12px';
+                    element.style.paddingBottom = '16px';
                     break;
                     
                 case 'aml-box':
                     element = document.createElement('div');
-                    element.style.background = '#1e293b';
+                    element.style.background = '#1e293b'; // Glassmorphism-style card panels
                     element.style.border = '1px solid #334155';
                     element.style.padding = '24px';
-                    element.style.borderRadius = '12px';
-                    element.style.marginTop = '20px';
+                    element.style.borderRadius = '14px';
+                    element.style.marginTop = '16px';
+                    element.style.width = '100%';
+                    element.style.maxWidth = '640px';
+                    element.style.boxShadow = '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4)';
+                    element.style.lineHeight = '1.6';
+                    element.style.fontSize = '1.1rem';
+                    element.style.boxSizing = 'border-box';
                     break;
 
-                case 'aml-toggle':
-                    element = document.createElement('label');
-                    element.style.display = 'inline-flex';
-                    element.style.alignItems = 'center';
-                    element.style.cursor = 'pointer';
-                    element.style.gap = '10px';
-                    element.style.marginTop = '10px';
-                    
-                    const hiddenCheck = document.createElement('input');
-                    hiddenCheck.type = 'checkbox';
-                    hiddenCheck.style.display = 'none';
-                    
-                    const switchTrack = document.createElement('div');
-                    switchTrack.style.width = '44px';
-                    switchTrack.style.height = '24px';
-                    switchTrack.style.background = '#334155';
-                    switchTrack.style.borderRadius = '12px';
-                    switchTrack.style.position = 'relative';
-                    switchTrack.style.transition = '0.3s';
-
-                    const switchThumb = document.createElement('div');
-                    switchThumb.style.width = '18px';
-                    switchThumb.style.height = '18px';
-                    switchThumb.style.background = '#white';
-                    switchThumb.style.borderRadius = '50%';
-                    switchThumb.style.position = 'absolute';
-                    switchThumb.style.top = '3px';
-                    switchThumb.style.left = '3px';
-                    switchThumb.style.transition = '0.3s';
-                    switchThumb.style.backgroundColor = '#e2e8f0';
-
-                    switchTrack.appendChild(switchThumb);
-                    element.appendChild(hiddenCheck);
-                    element.appendChild(switchTrack);
-
-                    hiddenCheck.addEventListener('change', () => {
-                        if(hiddenCheck.checked) {
-                            switchTrack.style.background = '#38bdf8';
-                            switchThumb.style.transform = 'translateX(20px)';
-                        } else {
-                            switchTrack.style.background = '#334155';
-                            switchThumb.style.transform = 'translateX(0)';
-                        }
-                    });
-                    break;
-
-                case 'aml-popover':
-                    element = document.createElement('div');
-                    element.style.position = 'relative';
+                case 'aml-stat':
+                    element = document.createElement('span');
+                    element.style.background = 'linear-gradient(135deg, #38bdf8, #0ea5e9)'; // Vivid glowing blue badge
+                    element.style.color = '#0b0f19';
+                    element.style.fontWeight = '800';
+                    element.style.fontSize = '0.8rem';
+                    element.style.textTransform = 'uppercase';
+                    element.style.letterSpacing = '0.06em';
+                    element.style.padding = '4px 12px';
+                    element.style.borderRadius = '6px';
+                    element.style.marginRight = '12px';
                     element.style.display = 'inline-block';
-                    element.style.marginTop = '15px';
-
-                    const trigger = document.createElement('button');
-                    trigger.innerText = child.attributes['trigger'] || 'Open Popover';
-                    trigger.style.background = '#38bdf8';
-                    trigger.style.color = '#0b0f19';
-                    trigger.style.border = 'none';
-                    trigger.style.padding = '8px 16px';
-                    trigger.style.borderRadius = '6px';
-                    trigger.style.fontWeight = 'bold';
-                    trigger.style.cursor = 'pointer';
-
-                    const content = document.createElement('div');
-                    content.style.display = 'none';
-                    content.style.position = 'absolute';
-                    content.style.top = '110%';
-                    content.style.left = '0';
-                    content.style.background = '#0f172a';
-                    content.style.border = '1px solid #38bdf8';
-                    content.style.padding = '12px';
-                    content.style.borderRadius = '6px';
-                    content.style.zIndex = '100';
-                    content.style.minWidth = '200px';
-
-                    trigger.addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        content.style.display = content.style.display === 'none' ? 'block' : 'none';
-                    });
-
-                    document.addEventListener('click', () => content.style.display = 'none');
-
-                    element.appendChild(trigger);
-                    element.appendChild(content);
-                    // Point children render pass to the inner content window
-                    renderAML(child, content);
-                    return;
-
-                case 'aml-tabs':
-                    element = document.createElement('div');
-                    element.className = 'aml-tabs-container';
-                    element.style.marginTop = '20px';
+                    element.style.verticalAlign = 'middle';
+                    break;
                     
-                    const tabHeader = document.createElement('div');
-                    tabHeader.className = 'aml-tab-headers';
-                    tabHeader.style.display = 'flex';
-                    tabHeader.style.gap = '5px';
-                    tabHeader.style.borderBottom = '1px solid #334155';
-                    
-                    const tabContentArea = document.createElement('div');
-                    tabContentArea.className = 'aml-tab-panes';
-                    tabContentArea.style.padding = '15px 0';
-
-                    element.appendChild(tabHeader);
-                    element.appendChild(tabContentArea);
-
-                    // Defer child rendering to structural parsing
-                    child.children.forEach((tabChild, idx) => {
-                        if (tabChild.name === 'aml-tab') {
-                            const btn = document.createElement('button');
-                            btn.innerText = tabChild.attributes['label'] || `Tab ${idx+1}`;
-                            btn.style.background = idx === 0 ? '#1e293b' : 'transparent';
-                            btn.style.color = idx === 0 ? '#38bdf8' : '#94a3b8';
-                            btn.style.border = '1px solid #334155';
-                            btn.style.borderBottom = idx === 0 ? '1px solid #1e293b' : 'none';
-                            btn.style.padding = '8px 16px';
-                            btn.style.cursor = 'pointer';
-                            btn.style.borderTopLeftRadius = '6px';
-                            btn.style.borderTopRightRadius = '6px';
-
-                            const pane = document.createElement('div');
-                            pane.style.display = idx === 0 ? 'block' : 'none';
-                            
-                            renderAML(tabChild, pane);
-                            tabContentArea.appendChild(pane);
-
-                            btn.addEventListener('click', () => {
-                                Array.from(tabHeader.children).forEach(b => {
-                                    b.style.background = 'transparent';
-                                    b.style.color = '#94a3b8';
-                                });
-                                Array.from(tabContentArea.children).forEach(p => p.style.display = 'none');
-                                
-                                btn.style.background = '#1e293b';
-                                btn.style.color = '#38bdf8';
-                                pane.style.display = 'block';
-                            });
-                            tabHeader.appendChild(btn);
-                        }
-                    });
-                    targetContainer.appendChild(element);
-                    return;
-
                 default:
+                    // Soft container behavior wrapper for unknown/unregistered tag trees
                     element = document.createElement('div');
+                    element.style.width = '100%';
+                    element.style.maxWidth = '640px';
+                    element.style.marginTop = '12px';
+                    element.style.fontSize = '1rem';
             }
 
             targetContainer.appendChild(element);
-            renderAML(child, element); 
+            renderAML(child, element); // Run recursive layout node parsing
         } else if (child.type === 'TextNode') {
             targetContainer.appendChild(document.createTextNode(child.value));
         }
     });
-}
-
-function initializeInteractiveElements() {
-    // Global hook for dynamic cleanup tasks or lifecycle listeners
 }
