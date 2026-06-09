@@ -1,11 +1,12 @@
 /**
  * NWML (New Web Making Language) Core Engine
- * Production Version 1.0.0 - Ultimate Feature Complete Edition
+ * Production Version 1.0.0 - Full Feature Complete Edition
  * Architecture: Tokenizer -> AST Parser -> Interactive Rendering Engine
  */
 
 document.addEventListener("DOMContentLoaded", () => {
     try {
+        // Read raw NWML content straight from body memory to bypass iframe sandboxes
         const rawText = document.body.innerHTML;
         const tokens = tokenizeNWML(rawText);
         const ast = parseNWML(tokens);
@@ -15,6 +16,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+/**
+ * Tokenizer / Lexer
+ * Extracts tags and separating content blocks out of the raw NWML stream.
+ */
 function tokenizeNWML(rawText) {
     const tokens = [];
     const regex = /(<\/?[a-zA-Z1-9\-]+(?: [^>]+)?>)|([^<]+)/g;
@@ -23,6 +28,7 @@ function tokenizeNWML(rawText) {
     while ((match = regex.exec(rawText)) !== null) {
         const [full, tag, text] = match;
         if (tag) {
+            // Bypass the runtime network bootloader engine script tag
             if (tag.toLowerCase().includes('script') && tag.includes('language.js')) continue;
             
             const isClosing = tag.startsWith('</');
@@ -46,6 +52,10 @@ function tokenizeNWML(rawText) {
     return tokens;
 }
 
+/**
+ * Attribute Parser
+ * Extracts inline configurations like cols="2", align="center", src="...", or href="..."
+ */
 function parseNWMLAttributes(attrString) {
     const attrs = {};
     if (!attrString) return attrs;
@@ -57,6 +67,10 @@ function parseNWMLAttributes(attrString) {
     return attrs;
 }
 
+/**
+ * AST Parser
+ * Builds a structured layout hierarchy tree from sequential tokens.
+ */
 function parseNWML(tokens) {
     let root = { type: 'Root', children: [] };
     let currentParent = root;
@@ -79,6 +93,9 @@ function parseNWML(tokens) {
     return root;
 }
 
+/**
+ * Universal Style Parameter Mapper
+ */
 function applyNWMLGlobalAttributes(element, attributes) {
     if (!attributes) return;
     if (attributes['align']) element.style.textAlign = attributes['align'];
@@ -89,8 +106,12 @@ function applyNWMLGlobalAttributes(element, attributes) {
     }
 }
 
+/**
+ * NWML High-Fidelity Design Rendering System
+ */
 function renderNWML(node, targetContainer) {
     if (node.type === 'Root') {
+        // Inject modern global animations and utility variables into the head
         if (!document.getElementById('nwml-core-shaders')) {
             const styleSheet = document.createElement("style");
             styleSheet.id = 'nwml-core-shaders';
@@ -108,6 +129,7 @@ function renderNWML(node, targetContainer) {
             document.head.appendChild(styleSheet);
         }
 
+        // Wipe default unstyled HTML view and build the rich canvas
         targetContainer.innerHTML = ''; 
         targetContainer.style.backgroundColor = '#030712'; 
         targetContainer.style.backgroundImage = 'radial-gradient(circle at 50% -25%, #1e1b4b 0%, #030712 80%)';
@@ -152,6 +174,10 @@ function renderNWML(node, targetContainer) {
                     element.style.boxShadow = '0 25px 45px -15px rgba(0, 0, 0, 0.6)';
                     element.style.lineHeight = '1.75';
                     element.style.color = '#e5e7eb';
+                    element.style.display = 'flex';
+                    element.style.flexDirection = 'column';
+                    element.style.gap = '12px'; // Prevents internal child clipping
+                    
                     if (targetContainer.className !== 'nw-grid-layout' && targetContainer.className !== 'nw-card-body') {
                         element.style.maxWidth = '680px';
                     }
@@ -194,7 +220,6 @@ function renderNWML(node, targetContainer) {
                     element.className = 'nw-animate nw-input-field';
                     element.placeholder = child.attributes['placeholder'] || 'Enter input...';
                     element.style.width = '100%';
-                    element.style.maxWidth = '680px';
                     element.style.background = 'rgba(31, 41, 55, 0.5)';
                     element.style.border = '1px solid rgba(75, 85, 99, 0.5)';
                     element.style.padding = '14px 18px';
@@ -202,7 +227,7 @@ function renderNWML(node, targetContainer) {
                     element.style.color = '#ffffff';
                     element.style.fontSize = '1rem';
                     element.style.transition = 'all 0.2s ease';
-                    element.style.marginTop = '8px';
+                    element.style.marginTop = '4px';
                     break;
 
                 case 'nw-image':
@@ -216,6 +241,7 @@ function renderNWML(node, targetContainer) {
                     element.style.border = '1px solid rgba(255,255,255,0.1)';
                     element.style.boxShadow = '0 10px 20px rgba(0,0,0,0.4)';
                     element.style.marginTop = '10px';
+                    element.style.display = 'block';
                     break;
 
                 case 'nw-alert':
@@ -232,7 +258,7 @@ function renderNWML(node, targetContainer) {
                         element.style.background = 'rgba(245, 158, 11, 0.15)';
                         element.style.border = '1px solid rgba(245, 158, 11, 0.4)';
                         element.style.color = '#fbbf24';
-                    } else { // default success
+                    } else { 
                         element.style.background = 'rgba(52, 211, 153, 0.15)';
                         element.style.border = '1px solid rgba(52, 211, 153, 0.4)';
                         element.style.color = '#34d399';
@@ -250,7 +276,6 @@ function renderNWML(node, targetContainer) {
                     element.style.overflow = 'hidden';
                     element.style.marginTop = '10px';
 
-                    // Add Header Toggle Trigger
                     const header = document.createElement('div');
                     header.innerText = child.attributes['title'] || 'Click to Expand';
                     header.style.padding = '16px 20px';
@@ -264,11 +289,13 @@ function renderNWML(node, targetContainer) {
                     const body = document.createElement('div');
                     body.className = 'nw-card-body';
                     body.style.padding = '20px';
-                    body.style.display = 'none'; // Starts hidden
+                    body.style.display = 'none'; 
+                    body.style.flexDirection = 'column';
+                    body.style.gap = '12px';
 
                     header.addEventListener('click', () => {
                         const isHidden = body.style.display === 'none';
-                        body.style.display = isHidden ? 'block' : 'none';
+                        body.style.display = isHidden ? 'flex' : 'none';
                         header.style.background = isHidden ? 'rgba(56, 189, 248, 0.08)' : 'rgba(255,255,255,0.04)';
                     });
 
@@ -276,9 +303,8 @@ function renderNWML(node, targetContainer) {
                     element.appendChild(body);
                     targetContainer.appendChild(element);
                     
-                    // Route internal items into the collapsible body container
                     renderNWML(child, body);
-                    return; // Avoid processing standard child loops down below since we custom-routed
+                    return; 
 
                 case 'nw-glow':
                     element = document.createElement('span');
@@ -300,6 +326,7 @@ function renderNWML(node, targetContainer) {
                     element.style.borderRadius = '100px';
                     element.style.marginRight = '12px';
                     element.style.display = 'inline-block';
+                    element.style.width = 'fit-content';
                     break;
                     
                 default:
