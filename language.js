@@ -1,20 +1,15 @@
 /**
  * AML1 (Advanced Markup Language 1) Core Engine
- * Version 1.3.0 - Iframe & Local Bypass Edition
- * Eliminates the fetch() dependency so the language can execute anywhere.
+ * Version 1.4.0 - Ultra Feature Expansion Pack
+ * Includes automated multi-column grids, interactive buttons, 
+ * smart typography parameters, and glow shaders.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
     try {
-        // 1. Instantly grab the raw markup straight from the document body memory
-        // This eliminates the 'about:srcdoc' fetch network error completely!
         const rawText = document.body.innerHTML;
-
-        // 2. Run the code through our parsing pipeline
         const tokens = tokenizeAML(rawText);
         const ast = parseAML(tokens);
-
-        // 3. Purge the plain text view and inject the luxury dark-mode system
         renderAML(ast, document.documentElement);
     } catch (err) {
         console.error("AML1 Core Engine Kernel Panic:", err);
@@ -29,14 +24,19 @@ function tokenizeAML(rawText) {
     while ((match = regex.exec(rawText)) !== null) {
         const [full, tag, text] = match;
         if (tag) {
-            // Ignore the engine runtime script tag completely
             if (tag.toLowerCase().includes('script') && tag.includes('language.js')) continue;
             
             const isClosing = tag.startsWith('</');
-            const name = tag.replace(/[<>\/]/g, '').split(' ')[0].toLowerCase();
-            tokens.push({ type: isClosing ? 'CLOSE_TAG' : 'OPEN_TAG', name: name });
+            const tagContent = tag.replace(/[<>\/]/g, '');
+            const name = tagContent.split(' ')[0].toLowerCase();
+            const attrString = tagContent.substring(name.length).trim();
+
+            tokens.push({ 
+                type: isClosing ? 'CLOSE_TAG' : 'OPEN_TAG', 
+                name: name,
+                attributes: parseAttributes(attrString)
+            });
         } else if (text && text.trim()) {
-            // Fix HTML entity escaping that browsers sometimes do inside body memory
             const cleanText = text.trim()
                 .replace(/&lt;/g, '<')
                 .replace(/&gt;/g, '>')
@@ -47,6 +47,17 @@ function tokenizeAML(rawText) {
     return tokens;
 }
 
+function parseAttributes(attrString) {
+    const attrs = {};
+    if (!attrString) return attrs;
+    const regex = /([a-zA-Z\-]+)=(?:"([^"]*)"|'([^']*)'|([^ ]+))/g;
+    let match;
+    while ((match = regex.exec(attrString)) !== null) {
+        attrs[match[1]] = match[2] || match[3] || match[4];
+    }
+    return attrs;
+}
+
 function parseAML(tokens) {
     let root = { type: 'Root', children: [] };
     let currentParent = root;
@@ -55,7 +66,7 @@ function parseAML(tokens) {
     for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
         if (token.type === 'OPEN_TAG') {
-            let node = { type: 'Element', name: token.name, children: [] };
+            let node = { type: 'Element', name: token.name, attributes: token.attributes, children: [] };
             currentParent.children.push(node);
             stack.push(node);
             currentParent = node;
@@ -69,9 +80,23 @@ function parseAML(tokens) {
     return root;
 }
 
+function applyUniversalStyles(element, attributes) {
+    if (!attributes) return;
+    
+    // Text Alignment Utility
+    if (attributes['align']) {
+        element.style.textAlign = attributes['align'];
+    }
+    // Size Modifiers
+    if (attributes['size']) {
+        if (attributes['size'] === 'small') element.style.fontSize = '0.9rem';
+        if (attributes['size'] === 'large') element.style.fontSize = '1.4rem';
+        if (attributes['size'] === 'huge') element.style.fontSize = '2.2rem';
+    }
+}
+
 function renderAML(node, targetContainer) {
     if (node.type === 'Root') {
-        // Inject smooth animations directly into the runtime head
         if (!document.getElementById('aml-core-styles')) {
             const styleSheet = document.createElement("style");
             styleSheet.id = 'aml-core-styles';
@@ -81,6 +106,8 @@ function renderAML(node, targetContainer) {
                     to { opacity: 1; transform: translateY(0); filter: blur(0); }
                 }
                 .aml-animate { animation: amlFadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+                .aml-button:hover { transform: translateY(-2px); background: #60a5fa !important; box-shadow: 0 0 20px rgba(56, 189, 248, 0.4) !important; }
+                .aml-button:active { transform: translateY(1px); }
                 * { box-sizing: border-box; margin: 0; padding: 0; }
             `;
             document.head.appendChild(styleSheet);
@@ -107,7 +134,7 @@ function renderAML(node, targetContainer) {
                 case 'aml-title':
                     element = document.createElement('h1');
                     element.className = 'aml-animate';
-                    element.style.fontSize = '3rem';
+                    element.style.fontSize = '3.2rem';
                     element.style.fontWeight = '900';
                     element.style.letterSpacing = '-0.04em';
                     element.style.background = 'linear-gradient(to right, #38bdf8, #818cf8)';
@@ -127,11 +154,51 @@ function renderAML(node, targetContainer) {
                     element.style.padding = '28px';
                     element.style.borderRadius = '20px';
                     element.style.width = '100%';
-                    element.style.maxWidth = '640px';
                     element.style.boxShadow = '0 20px 40px -15px rgba(0, 0, 0, 0.5)';
                     element.style.lineHeight = '1.7';
-                    element.style.fontSize = '1.1rem';
                     element.style.color = '#e5e7eb';
+                    
+                    // If not inside a grid layout, cap width nicely
+                    if (targetContainer.className !== 'aml-grid-container') {
+                        element.style.maxWidth = '680px';
+                    }
+                    break;
+
+                case 'aml-grid':
+                    element = document.createElement('div');
+                    element.className = 'aml-animate aml-grid-container';
+                    element.style.display = 'grid';
+                    // Dynamic layout generation mapping: e.g., cols="2" turns into two symmetric side-by-side grids
+                    const columnsCount = child.attributes['cols'] || '1';
+                    element.style.gridTemplateColumns = `repeat(${columnsCount}, minmax(0, 1fr))`;
+                    element.style.gap = '20px';
+                    element.style.width = '100%';
+                    element.style.maxWidth = '1000px';
+                    element.style.marginTop = '10px';
+                    break;
+
+                case 'aml-btn':
+                    element = document.createElement('a');
+                    element.className = 'aml-animate aml-button';
+                    element.href = child.attributes['href'] || '#';
+                    element.style.display = 'inline-block';
+                    element.style.textDecoration = 'none';
+                    element.style.background = '#38bdf8';
+                    element.style.color = '#030712';
+                    element.style.fontWeight = '700';
+                    element.style.padding = '12px 24px';
+                    element.style.borderRadius = '12px';
+                    element.style.marginTop = '15px';
+                    element.style.transition = 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+                    element.style.cursor = 'pointer';
+                    element.style.boxShadow = '0 4px 6px -1px rgba(56, 189, 248, 0.2)';
+                    break;
+
+                case 'aml-glow':
+                    element = document.createElement('span');
+                    element.style.color = '#ffffff';
+                    element.style.textShadow = '0 0 12px rgba(129, 140, 248, 0.6), 0 0 24px rgba(129, 140, 248, 0.3)';
+                    element.style.fontWeight = 'bold';
                     break;
 
                 case 'aml-stat':
@@ -152,9 +219,14 @@ function renderAML(node, targetContainer) {
                 default:
                     element = document.createElement('div');
                     element.className = 'aml-animate';
-                    element.style.width = '100%';
-                    element.style.maxWidth = '640px';
+                    if (targetContainer.className !== 'aml-grid-container') {
+                        element.style.width = '100%';
+                        element.style.maxWidth = '680px';
+                    }
             }
+
+            // Bind global parameters
+            applyUniversalStyles(element, child.attributes);
 
             targetContainer.appendChild(element);
             renderAML(child, element); 
